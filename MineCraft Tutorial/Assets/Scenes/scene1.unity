@@ -139,7 +139,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &125274178
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -152,8 +152,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14c834853601d7a43b365fb3daf936bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  meshrenderer: {fileID: 125274179}
-  meshfilter: {fileID: 125274180}
 --- !u!23 &125274179
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -161,7 +159,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 125274177}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -327,24 +325,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa408f9f7466a0a4f9b964b7dae8bd01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 275060641}
+  spawnPosition: {x: 0, y: 0, z: 0}
   material: {fileID: 2100000, guid: e7b549cb4ea31534eb5da9f8f6fe1a26, type: 2}
   blocktypes:
-  - blockName: Default
-    isSolid: 1
+  - blockName: Air
+    isSolid: 0
     backFaceTexture: 0
     frontFaceTexture: 0
     topFaceTexture: 0
     bottomFaceTexture: 0
     leftFaceTexture: 0
     rightFaceTexture: 0
-  - blockName: ColorZ
+  - blockName: Yellow
     isSolid: 1
-    backFaceTexture: 0
-    frontFaceTexture: 1
+    backFaceTexture: 2
+    frontFaceTexture: 2
     topFaceTexture: 2
-    bottomFaceTexture: 3
+    bottomFaceTexture: 2
+    leftFaceTexture: 2
+    rightFaceTexture: 2
+  - blockName: Green
+    isSolid: 1
+    backFaceTexture: 4
+    frontFaceTexture: 4
+    topFaceTexture: 4
+    bottomFaceTexture: 4
     leftFaceTexture: 4
-    rightFaceTexture: 5
+    rightFaceTexture: 4
 --- !u!4 &306482069
 Transform:
   m_ObjectHideFlags: 0
@@ -353,7 +361,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 306482067}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.844775, y: 13.902093, z: 5.9469314}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
