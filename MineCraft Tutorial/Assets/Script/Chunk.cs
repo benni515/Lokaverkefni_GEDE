@@ -13,22 +13,26 @@ public class Chunk : MonoBehaviour
     private List<int> triangles = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
 
-    bool[,,] voxelMap = new bool[Voxel.ChunkWidth, Voxel.ChunkHeight, Voxel.ChunkWidth];
-        
+    byte[,,] voxelMap = new byte[Voxel.ChunkWidth, Voxel.ChunkHeight, Voxel.ChunkWidth];
+
+    World world;
+
     void AddVoxelDataToChunk(Vector3 pos) {
         for (int p = 0; p < 6; p++) {
 
             // Only draw faces if there isn't another face there
             if(!CheckVoxel(pos + Voxel.faceChecks[p])) {
 
+                byte blockID = voxelMap[(int)pos.x, (int)pos.y, (int)pos.z];
+
                 vertices.Add(pos + Voxel.voxelVerts[Voxel.voxelTris[p, 0]]);
                 vertices.Add(pos + Voxel.voxelVerts[Voxel.voxelTris[p, 1]]);
                 vertices.Add(pos + Voxel.voxelVerts[Voxel.voxelTris[p, 2]]);
                 vertices.Add(pos + Voxel.voxelVerts[Voxel.voxelTris[p, 3]]);
-                uvs.Add(Voxel.voxelUvs[0]);
-                uvs.Add(Voxel.voxelUvs[1]);
-                uvs.Add(Voxel.voxelUvs[2]);
-                uvs.Add(Voxel.voxelUvs[3]);
+
+                // Add correct face to block
+                AddTexture(world.blocktypes[blockID].GetTextureID(p));
+
                 triangles.Add(vertexIndex);
                 triangles.Add(vertexIndex + 1);
                 triangles.Add(vertexIndex + 2);
@@ -56,7 +60,8 @@ public class Chunk : MonoBehaviour
         for(int i = 0; i < Voxel.ChunkWidth; i++) {
             for (int j = 0; j < Voxel.ChunkHeight; j++) {
                 for (int z = 0; z < Voxel.ChunkWidth; z++) {
-                    voxelMap[i, j, z] = true;
+                    // Block can be changed HERE!
+                    voxelMap[i, j, z] = 1;
                 }
             }
         }
@@ -70,7 +75,7 @@ public class Chunk : MonoBehaviour
         if(x < 0 || x >= Voxel.ChunkWidth || y < 0 || y >= Voxel.ChunkHeight || z < 0 || z >= Voxel.ChunkWidth) {
             return false;
         }
-        return voxelMap[x, y, z];
+        return world.blocktypes[voxelMap[x, y, z]].isSolid;
     }
 
     void CreateMeshData() {
@@ -84,7 +89,23 @@ public class Chunk : MonoBehaviour
         }
     }
 
+    void AddTexture(int textureID) {
+        float y = textureID / Voxel.TextureAtlasSizeInBlocks;
+        float x = textureID - (y * Voxel.TextureAtlasSizeInBlocks);
+
+        x *= Voxel.NormalizeBlockTextureSize;
+        y *= Voxel.NormalizeBlockTextureSize;
+
+        y = 1f - y - Voxel.NormalizeBlockTextureSize;
+
+        uvs.Add(new Vector2(x, y));
+        uvs.Add(new Vector2(x, y + Voxel.NormalizeBlockTextureSize));
+        uvs.Add(new Vector2(x + Voxel.NormalizeBlockTextureSize, y));
+        uvs.Add(new Vector2(x + Voxel.NormalizeBlockTextureSize, y + Voxel.NormalizeBlockTextureSize));
+    }
+
     void Start() {
+        world = GameObject.Find("World").GetComponent<World>();
         PopulateVoxelMap();
         CreateMeshData();
         CreateMesh();
