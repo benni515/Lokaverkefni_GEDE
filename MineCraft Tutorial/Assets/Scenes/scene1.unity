@@ -152,6 +152,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14c834853601d7a43b365fb3daf936bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  chunkObject: {fileID: 0}
+  meshrenderer: {fileID: 0}
+  meshfilter: {fileID: 0}
+  vertexIndex: 0
+  vertices: []
+  triangles: 
+  uvs: []
+  world: {fileID: 0}
 --- !u!23 &125274179
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -325,6 +333,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa408f9f7466a0a4f9b964b7dae8bd01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seed: 47354930
+  biome: {fileID: 11400000, guid: 91eb217e567c96c43b9a6ccaa0fe953b, type: 2}
   player: {fileID: 275060641}
   spawnPosition: {x: 0, y: 0, z: 0}
   material: {fileID: 2100000, guid: e7b549cb4ea31534eb5da9f8f6fe1a26, type: 2}
@@ -337,22 +347,46 @@ MonoBehaviour:
     bottomFaceTexture: 0
     leftFaceTexture: 0
     rightFaceTexture: 0
-  - blockName: Yellow
+  - blockName: Bedrock
+    isSolid: 1
+    backFaceTexture: 9
+    frontFaceTexture: 9
+    topFaceTexture: 9
+    bottomFaceTexture: 9
+    leftFaceTexture: 9
+    rightFaceTexture: 9
+  - blockName: Stone
+    isSolid: 1
+    backFaceTexture: 0
+    frontFaceTexture: 0
+    topFaceTexture: 0
+    bottomFaceTexture: 0
+    leftFaceTexture: 0
+    rightFaceTexture: 0
+  - blockName: Grass
     isSolid: 1
     backFaceTexture: 2
     frontFaceTexture: 2
-    topFaceTexture: 2
-    bottomFaceTexture: 2
+    topFaceTexture: 7
+    bottomFaceTexture: 1
     leftFaceTexture: 2
     rightFaceTexture: 2
-  - blockName: Green
+  - blockName: Dirt
     isSolid: 1
-    backFaceTexture: 4
-    frontFaceTexture: 4
-    topFaceTexture: 4
-    bottomFaceTexture: 4
-    leftFaceTexture: 4
-    rightFaceTexture: 4
+    backFaceTexture: 1
+    frontFaceTexture: 1
+    topFaceTexture: 1
+    bottomFaceTexture: 1
+    leftFaceTexture: 1
+    rightFaceTexture: 1
+  - blockName: Sand
+    isSolid: 1
+    backFaceTexture: 10
+    frontFaceTexture: 10
+    topFaceTexture: 10
+    bottomFaceTexture: 10
+    leftFaceTexture: 10
+    rightFaceTexture: 10
 --- !u!4 &306482069
 Transform:
   m_ObjectHideFlags: 0

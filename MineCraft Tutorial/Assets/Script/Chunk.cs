@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class Chunk : MonoBehaviour{
+public class Chunk {
     public ChunkCoord coord;
 
     GameObject chunkObject;
@@ -116,10 +115,12 @@ public class Chunk : MonoBehaviour{
 
     void CreateMeshData() {
 
-        for(int i = 0; i < Voxel.ChunkWidth; i++) {
-            for (int j = 0; j < Voxel.ChunkHeight; j++) {
+        for(int x = 0; x < Voxel.ChunkWidth; x++) {
+            for (int y = 0; y < Voxel.ChunkHeight; y++) {
                 for (int z = 0; z < Voxel.ChunkWidth; z++) {
-                    AddVoxelDataToChunk(new Vector3(i, j, z));
+                    // Only render if block is solid
+                    if (world.blocktypes[voxelMap[x, y, z]].isSolid)
+                        AddVoxelDataToChunk(new Vector3(x, y, z));
                 }
             }
         }
@@ -146,7 +147,7 @@ public class ChunkCoord {
     public int x;
     public int z;
 
-    public ChunkCoord(int _x, int _z) {
+    public ChunkCoord (int _x, int _z) {
         x = _x;
         z = _z;
     }
