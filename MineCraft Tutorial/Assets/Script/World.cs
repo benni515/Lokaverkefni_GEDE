@@ -19,7 +19,12 @@ public class World : MonoBehaviour {
     ChunkCoord playerLastChunkCoord;
 
     List<ChunkCoord> chunksToCreate = new List<ChunkCoord>();
-    private bool isCreatingChunks;
+    List<Chunk> chunksToUpdate = new List<Chunk>();
+
+
+    Queue<VoxelMod> modifications = new Queue<VoxelMod>();
+
+    bool applyingModifications = false;
 
     public GameObject debugScreen;
 
@@ -37,9 +42,15 @@ public class World : MonoBehaviour {
         if (!playerChunkCoord.Equals(playerLastChunkCoord))
             CheckViewDistance();
 
-        // Start generating chunks
-        if (chunksToCreate.Count > 0 && !isCreatingChunks)
-            StartCoroutine("CreateChunks");
+        if(modifications.Count > 0 && !applyingModifications) {
+            StartCoroutine(ApplyModifications());
+        }
+        if(chunksToCreate.Count > 0 ) {
+            CreateChunk();
+        }
+        if(chunksToUpdate.Count > 0 ) {
+            UpdateChunks();
+        }
 
         // Enable debug
         if (Input.GetKeyDown(KeyCode.F3))
@@ -53,23 +64,80 @@ public class World : MonoBehaviour {
                 activeChunks.Add(new ChunkCoord(x, z));
             }
         }
+        while(modifications.Count > 0) {
+            VoxelMod v = modifications.Dequeue();
+            ChunkCoord c = GetChunkCoordFromVector3(v.position);
+
+            if(chunks[c.x, c.z] == null ) {
+                chunks[c.x, c.z] = new Chunk(c, this, true);
+                activeChunks.Add(c);
+            }
+
+            chunks[c.x, c.z].modifications.Enqueue(v);
+
+            if(!chunksToUpdate.Contains(chunks[c.x, c.z])) {
+                chunksToUpdate.Add(chunks[c.x, c.z]);
+            }
+        }
+        for(int i = 0; i < chunksToUpdate.Count; i++) {
+            chunksToUpdate[i].UpdateChunk();
+        }
+        chunksToUpdate.Clear();
 
         player.position = spawnPosition;
     }
 
-    IEnumerator CreateChunks ()
-    {
-        isCreatingChunks = true;
+    void CreateChunk() {
+        ChunkCoord c = chunksToCreate[0];
+        chunksToCreate.RemoveAt(0);
+        activeChunks.Add(c);
+        chunks[c.x, c.z].Init();
+    }
 
-        while (chunksToCreate.Count > 0)
-        {
-            chunks[chunksToCreate[0].x, chunksToCreate[0].z].Init();
-            chunksToCreate.RemoveAt(0);
-            yield return null;
+    void UpdateChunks() {
+        bool updated = false;
+        int index = 0;
+        while(!updated && index < chunksToUpdate.Count-1) {
+            if(chunksToUpdate[index].isVoxelMapPopulated) {
+                chunksToUpdate[index].UpdateChunk();
+                chunksToUpdate.RemoveAt(index);
+                updated = true;
+            } else {
+                index += 1;
+            }
+        }
+    }
+    
+    IEnumerator ApplyModifications () {
+        applyingModifications = true;
+        int count = 0;
+
+        while (modifications.Count > 0) {
+            VoxelMod v = modifications.Dequeue();
+
+            ChunkCoord c = GetChunkCoordFromVector3(v.position);
+
+            if (chunks[c.x, c.z] == null) {
+                chunks[c.x, c.z] = new Chunk(c, this, true);
+                activeChunks.Add(c);
+            }
+
+            chunks[c.x, c.z].modifications.Enqueue(v);
+
+            if (!chunksToUpdate.Contains(chunks[c.x, c.z])) {
+                chunksToUpdate.Add(chunks[c.x, c.z]);
+            }
+
+            count++;
+            if(count > 200) {
+                count = 0;
+                yield return null;
+            }
         }
 
-        isCreatingChunks = false;
+        applyingModifications = false;
     }
+
 
     ChunkCoord GetChunkCoordFromVector3(Vector3 pos) {
         int x = Mathf.FloorToInt(pos.x / Voxel.ChunkWidth);
@@ -174,6 +242,30 @@ public class World : MonoBehaviour {
             }
         } 
 
+        // TREE PASS
+        if(yPos == terrainHeight) {
+            
+            if(Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.treeZoneScale) > biome.treeZoneThreshold) {
+                // Set voxelValuie = 1, so see what the area will be for the trees
+                voxelValue = 1;
+                if (Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.treePlacementScale) > biome.treePlacementThreshold) {
+                    //voxelValue = 5;
+                    int height = Random.Range(biome.minTreeHeight, biome.maxTreeHeight);
+                    for(int i = 1; i <= height; i++) {
+                        modifications.Enqueue(new VoxelMod(new Vector3(pos.x, pos.y + i, pos.z), 6));
+                    }
+                    for(int i = -2; i <= 2; i++) {
+                        for (int j = -2; j <= 2; j++) {
+                            for (int z = -1; z <= 2; z++) { 
+                                if (i == 0 && j == 0 && z <= 0) continue;
+                                modifications.Enqueue(new VoxelMod(new Vector3(pos.x + i, pos.y + height + z, pos.z + j), 3));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         return voxelValue;
     }
 
@@ -224,5 +316,20 @@ public class BlockType {
                 Debug.Log("Error selecting face index");
                 return 0;
         }
+    }
+}
+
+public class VoxelMod {
+    public Vector3 position;
+    public byte id;
+
+    public VoxelMod() {
+        position = new Vector3();
+        id = 0;
+    }
+
+    public VoxelMod(Vector3 _position, byte _id) {
+        position = _position;
+        id = _id;
     }
 }

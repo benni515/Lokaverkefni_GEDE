@@ -15,6 +15,8 @@ public class Chunk {
 
     public byte[,,] voxelMap = new byte[Voxel.ChunkWidth, Voxel.ChunkHeight, Voxel.ChunkWidth];
 
+    public Queue<VoxelMod> modifications = new Queue<VoxelMod>();
+
     World world;
 
     private bool _isActive;
@@ -42,7 +44,7 @@ public class Chunk {
         chunkObject.name = "Chunk " + coord.x + ", " + coord.z;
 
         PopulateVoxelMap();
-        UpdateChunck();
+        UpdateChunk();
     }
 
     void UpdateMeshData(Vector3 pos) {
@@ -129,7 +131,7 @@ public class Chunk {
 
         // Update surrounding Chunks
 
-        UpdateChunck();
+        UpdateChunk();
     }
 
     void UpdateSurroundingVoxels(int x, int y, int z) {
@@ -138,7 +140,7 @@ public class Chunk {
             Vector3 currentVoxel = thisVoxel + Voxel.faceChecks[p];
 
             if(!IsVoxelInChunk((int)currentVoxel.x, (int)currentVoxel.y, (int)currentVoxel.z)) {
-                world.GetChunkFromVector3(currentVoxel + position).UpdateChunck();
+                world.GetChunkFromVector3(currentVoxel + position).UpdateChunk();
             }
         }
     }
@@ -167,7 +169,13 @@ public class Chunk {
         return voxelMap[xCheck, yCheck, zCheck];
     }
 
-    void UpdateChunck() {
+    public void UpdateChunk() {
+
+        while(modifications.Count > 0) {
+            VoxelMod v = modifications.Dequeue();
+            Vector3 pos = v.position -= position;
+            voxelMap[(int)pos.x, (int)pos.y, (int)pos.z] = v.id;
+        }
 
         ClearMeshData();
 
