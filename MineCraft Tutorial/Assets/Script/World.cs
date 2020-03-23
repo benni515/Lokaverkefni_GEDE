@@ -78,6 +78,14 @@ public class World : MonoBehaviour {
         return new ChunkCoord(x, z);
     }
 
+    public Chunk GetChunkFromVector3(Vector3 pos) {
+        int x = Mathf.FloorToInt(pos.x / Voxel.ChunkWidth);
+        int z = Mathf.FloorToInt(pos.z / Voxel.ChunkWidth);
+
+        return chunks[x, z];
+
+    }
+
     void CheckViewDistance() {
         ChunkCoord coord = GetChunkCoordFromVector3(player.position);
 
@@ -116,6 +124,7 @@ public class World : MonoBehaviour {
     public bool CheckForVoxel (Vector3 pos)
     {
         ChunkCoord thisChunk = new ChunkCoord(pos);
+
 
         if (!IsChunkInWorld(thisChunk) || pos.y < 0 || pos.y > Voxel.ChunkHeight)
             return false;
@@ -169,7 +178,7 @@ public class World : MonoBehaviour {
     }
 
     bool IsChunkInWorld(ChunkCoord coord) {
-        if (coord.x > 0 && coord.x < Voxel.worldSizeInChunks - 1 && coord.z < Voxel.worldSizeInChunks - 1) {
+        if (coord.x > 0 && coord.x < Voxel.worldSizeInChunks - 1 && coord.z > 0  && coord.z < Voxel.worldSizeInChunks - 1) {
             return true;
         }
         return false;

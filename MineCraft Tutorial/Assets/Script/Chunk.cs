@@ -42,11 +42,10 @@ public class Chunk {
         chunkObject.name = "Chunk " + coord.x + ", " + coord.z;
 
         PopulateVoxelMap();
-        CreateMeshData();
-        CreateMesh();
+        UpdateChunck();
     }
 
-    void AddVoxelDataToChunk(Vector3 pos) {
+    void UpdateMeshData(Vector3 pos) {
         for (int p = 0; p < 6; p++) {
 
             // Only draw faces if there isn't another face there
@@ -118,6 +117,32 @@ public class Chunk {
         return true;
     }
 
+    public void EditVoxel(Vector3 pos, byte newID) {
+        int xCheck = Mathf.FloorToInt(pos.x);
+        int yCheck = Mathf.FloorToInt(pos.y);
+        int zCheck = Mathf.FloorToInt(pos.z);
+
+        xCheck -= Mathf.FloorToInt(chunkObject.transform.position.x);
+        zCheck -= Mathf.FloorToInt(chunkObject.transform.position.z);
+
+        voxelMap[xCheck, yCheck, zCheck] = newID;
+
+        // Update surrounding Chunks
+
+        UpdateChunck();
+    }
+
+    void UpdateSurroundingVoxels(int x, int y, int z) {
+        Vector3 thisVoxel = new Vector3(x, y, z);
+        for(int p = 0; p < 6; p++) {
+            Vector3 currentVoxel = thisVoxel + Voxel.faceChecks[p];
+
+            if(!IsVoxelInChunk((int)currentVoxel.x, (int)currentVoxel.y, (int)currentVoxel.z)) {
+                world.GetChunkFromVector3(currentVoxel + position).UpdateChunck();
+            }
+        }
+    }
+
     bool CheckVoxel(Vector3 pos) {
         int x = Mathf.FloorToInt(pos.x);
         int y = Mathf.FloorToInt(pos.y);
@@ -142,17 +167,28 @@ public class Chunk {
         return voxelMap[xCheck, yCheck, zCheck];
     }
 
-    void CreateMeshData() {
+    void UpdateChunck() {
+
+        ClearMeshData();
 
         for(int x = 0; x < Voxel.ChunkWidth; x++) {
             for (int y = 0; y < Voxel.ChunkHeight; y++) {
                 for (int z = 0; z < Voxel.ChunkWidth; z++) {
                     // Only render if block is solid
                     if (world.blocktypes[voxelMap[x, y, z]].isSolid)
-                        AddVoxelDataToChunk(new Vector3(x, y, z));
+                        UpdateMeshData(new Vector3(x, y, z));
                 }
             }
         }
+
+        CreateMesh();
+    }
+    
+    void ClearMeshData() {
+        vertexIndex = 0;
+        vertices.Clear();
+        triangles.Clear();
+        uvs.Clear();
     }
 
     void AddTexture(int textureID) {
