@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 
-public class Chunk {
+public class Chunk : MonoBehaviour {
     public ChunkCoord coord;
 
     GameObject chunkObject;
     MeshRenderer meshrenderer;
-    MeshFilter meshfilter;  
-
+    MeshFilter meshfilter;
+    
     private int vertexIndex = 0;
     private List<Vector3> vertices = new List<Vector3>();
     private List<int> triangles = new List<int>();
@@ -21,6 +22,7 @@ public class Chunk {
 
     private bool _isActive;
     public bool isVoxelMapPopulated = false;
+    private bool _isUpdating = false;
 
     public Vector3 position;
 
@@ -98,7 +100,7 @@ public class Chunk {
 
         lock (world.ChunkUpdateThreadLock)
         {
-            world.chunksToUpdate.Add(this);
+            world.chunksToUpdate.AddLast(this);
         }
     }
 
@@ -122,7 +124,7 @@ public class Chunk {
     public bool isEditable
     {
         get { 
-            if (!isVoxelMapPopulated)
+            if (!isVoxelMapPopulated && !_isUpdating)
             {
                 return false;
             }
@@ -141,12 +143,18 @@ public class Chunk {
         xCheck -= Mathf.FloorToInt(chunkObject.transform.position.x);
         zCheck -= Mathf.FloorToInt(chunkObject.transform.position.z);
 
+        if(newID == 0) {
+            // If we are chaning this with an air block, then we must be destroying it
+            // So let's create an object.
+            Instantiate(world._pickup_wood, pos + new Vector3(0.5f, 0.5f, 0.5f), Quaternion.identity);
+        }
+
         voxelMap[xCheck, yCheck, zCheck] = newID;
 
         // Lock and update
         lock(world.ChunkUpdateThreadLock)
         {
-            world.chunksToUpdate.Insert(0, this);
+            world.chunksToUpdate.AddFirst(this);
             UpdateSurroundingVoxels(xCheck, yCheck, zCheck);
         }
     }
@@ -157,7 +165,7 @@ public class Chunk {
             Vector3 currentVoxel = thisVoxel + Voxel.faceChecks[p];
 
             if(!IsVoxelInChunk((int)currentVoxel.x, (int)currentVoxel.y, (int)currentVoxel.z)) {
-                world.chunksToUpdate.Insert(0, world.GetChunkFromVector3(currentVoxel + position));
+                world.chunksToUpdate.AddFirst(world.GetChunkFromVector3(currentVoxel + position));
             }
         }
     }
@@ -194,6 +202,7 @@ public class Chunk {
             voxelMap[(int)pos.x, (int)pos.y, (int)pos.z] = v.id;
         }
 
+        _isUpdating = true;
         ClearMeshData();
 
         for (int y = 0; y < Voxel.ChunkHeight; y++) {
@@ -206,6 +215,7 @@ public class Chunk {
             }
         }
 
+        _isUpdating = false;
         world.chunksToDraw.Enqueue(this);
     }
     

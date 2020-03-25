@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading;
+using System;
 
 public class World : MonoBehaviour {
     public int seed;
@@ -13,6 +14,9 @@ public class World : MonoBehaviour {
     public Material material;
     public BlockType[] blocktypes;
 
+    // Pickupable objects
+    public GameObject _pickup_wood;
+
     // Dict keyd on (x,y) pointing to index in chunk array
     Dictionary<ChunkCoord, Chunk> chunkMap = new Dictionary<ChunkCoord, Chunk>();
 
@@ -21,7 +25,7 @@ public class World : MonoBehaviour {
     ChunkCoord playerLastChunkCoord;
 
     List<ChunkCoord> chunksToCreate = new List<ChunkCoord>();
-    public List<Chunk> chunksToUpdate = new List<Chunk>();
+    public LinkedList<Chunk> chunksToUpdate = new LinkedList<Chunk>();
     public Queue<Chunk> chunksToDraw = new Queue<Chunk>();
 
     Queue<Queue<VoxelMod>> modifications = new Queue<Queue<VoxelMod>>();
@@ -40,7 +44,7 @@ public class World : MonoBehaviour {
     public int CleanupDistance = 20; // Distance in chunks
 
     private void Start() {
-        Random.InitState(seed);
+        UnityEngine.Random.InitState(seed);
 
         ChunkUpdateThread = new Thread(new ThreadStart(ThreadedUpdate));
         ChunkUpdateThread.Start();
@@ -54,11 +58,21 @@ public class World : MonoBehaviour {
         playerLastChunkCoord = GetChunkCoordFromVector3(player.position);
     }
 
+    public bool done = false;
+
     private void FixedUpdate() {
         playerChunkCoord = GetChunkCoordFromVector3(player.position);
 
-        if (!playerChunkCoord.Equals(playerLastChunkCoord))
+        /*
+        if (!playerChunkCoord.Equals(playerLastChunkCoord)) { 
             CheckViewDistance();
+        } */
+
+        // For checking without view distance
+        if (!playerChunkCoord.Equals(playerLastChunkCoord) && !done) { 
+            done = true;
+            CheckViewDistance();
+        }
 
         if(chunksToCreate.Count > 0 ) {
             CreateChunk();
@@ -66,8 +80,13 @@ public class World : MonoBehaviour {
 
         if (chunksToDraw.Count > 0)
         {
-            if (chunksToDraw.Peek().isEditable)
-                chunksToDraw.Dequeue().CreateMesh();
+            if (chunksToDraw.Peek().isEditable) {
+                Chunk hold = chunksToDraw.Dequeue();
+                hold.CreateMesh();
+            } else {
+                Chunk hold = chunksToDraw.Dequeue();
+                chunksToDraw.Enqueue(hold);
+            }
         }
 
         // Enable debug
@@ -136,18 +155,22 @@ public class World : MonoBehaviour {
 
     void UpdateChunks() {
         bool updated = false;
-        int index = 0;
+        int counter = 0;
 
         lock (ChunkUpdateThreadLock)
         {
-            while(!updated && index < chunksToUpdate.Count-1) {
-                if(chunksToUpdate[index].isEditable) {
-                    chunksToUpdate[index].UpdateChunk();
-                    activeChunks.Add(chunksToUpdate[index].coord);
-                    chunksToUpdate.RemoveAt(index);
+            while(!updated && counter < chunksToUpdate.Count-1) { 
+                if(chunksToUpdate.First.Value.isEditable) {
+                    Chunk hold = chunksToUpdate.First.Value;
+                    chunksToUpdate.RemoveFirst();
+                    hold.UpdateChunk();
+                    activeChunks.Add(hold.coord);
                     updated = true;
                 } else {
-                    index++;
+                    Chunk hold = chunksToUpdate.First.Value;
+                    chunksToUpdate.RemoveFirst();
+                    chunksToUpdate.AddLast(hold);
+                    counter += 1;
                 }
             }
         }
@@ -283,14 +306,21 @@ public class World : MonoBehaviour {
         if (yPos == 0)
             return 1;
 
-        
+
         // BASIC TERRAIN PASS
 
         int terrainHeight = Mathf.FloorToInt(Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.terrainScale) * biome.terrainHeight) + biome.solidGroundHeight;
         byte voxelValue = 0;
 
-        if (yPos == terrainHeight)
-            voxelValue = 3;
+        if (yPos == terrainHeight) { 
+            if (yPos >= (70 + UnityEngine.Random.Range(-1,1))) {
+                // So high up we get snow
+                voxelValue = 9;
+            } else {
+                voxelValue = 3;
+            }
+
+         }
         else if (yPos < terrainHeight && yPos > terrainHeight - 4)
             voxelValue = 4;
         else if (yPos > terrainHeight) {
@@ -321,7 +351,7 @@ public class World : MonoBehaviour {
                 //voxelValue = 1;
                 if (Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.treePlacementScale) > biome.treePlacementThreshold) {
                     //voxelValue = 5;
-                    int height = Random.Range(biome.minTreeHeight, biome.maxTreeHeight);
+                    int height = UnityEngine.Random.Range(biome.minTreeHeight, biome.maxTreeHeight);
                     for(int i = 1; i <= height; i++) {
                         hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x, pos.y + i, pos.z), 6));
                     }
@@ -329,7 +359,7 @@ public class World : MonoBehaviour {
                         for (int j = -2; j <= 2; j++) {
                             for (int z = -1; z <= 2; z++) { 
                                 if (i == 0 && j == 0 && z <= 0) continue;
-                                hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x + i, pos.y + height + z, pos.z + j), 3));
+                                hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x + i, pos.y + height + z, pos.z + j), 7));
                             }
                         }
                     }
@@ -338,10 +368,76 @@ public class World : MonoBehaviour {
             }
         }
 
+        // Make houses
+         if(yPos == terrainHeight) {
+            
+            if(Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 570, biome.treeZoneScale) > 0.7) {
+                Queue<VoxelMod> hold_queue = new Queue<VoxelMod>();
+                // Set voxelValuie = 1, so see what the area will be for the houses
+                //voxelValue = 1;
+                if (Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.treePlacementScale) > 0.92) {
+                    //voxelValue = 5;
+
+
+                    // Clear everything inside the house so there isnt any dirt and shit
+                    // Doesn't actually work, first generate the map then do the addianl additions
+                    for(int i = 2; i <= 4; i++) {
+                        for(int j = 2; j <= 4; j++) {
+                            for(int z = 2; z <= 4; z++) {
+                                hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x+i, pos.y+z, pos.z+j), 0));
+                            }
+                        }
+                    }
+
+                    // Make floor
+                    for(int i = 1; i <= 5; i++) {
+                        for (int j = 1; j <= 5; j++) {
+                            hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x+i, pos.y, pos.z+j), 13));
+                        }
+                    }
+
+                    // Make the dirt underneath so its even
+                    for(int i = 1; i <= 5; i++) {
+                        for (int j = 1; j <= 5; j++) {
+                            for (int z = -1; z >= -3; z--) {
+                                hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x + i, pos.y + z, pos.z + j), 4));
+                            }
+                        }
+                    }
+
+                    // Make around the house
+                    for(int i = 1; i <= 5; i++) {
+                        for(int j = 1; j <= 5; j++) {
+                            int counter = 0;
+                            if (i != 1 && i != 5) counter += 1;
+                            if (j != 1 && j != 5) counter += 1;
+                            if (counter == 2) continue;
+                            for(int z = 1; z <= 4; z++) {
+                                if (i == 3 && j == 1 && z <= 2) continue;
+                                hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x+i, pos.y+z, pos.z+j), 13));
+                            }
+                        }
+                    }
+
+                    // Make the roof
+                    for(int i = 2; i <= 4; i++) {
+                        for (int j = 2; j <= 4; j++) {
+                            hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x+i, pos.y+4, pos.z+j), 13));
+                        }
+                    }
+
+
+
+                    
+                    modifications.Enqueue(hold_queue);
+                }
+            }
+        }
+
         // Island Generation
-        if(yPos == terrainHeight + 50) {
+        if(Math.Abs(yPos - (120 + UnityEngine.Random.Range(-1,1))) <= 1) {
             if (Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.skyIslandZoneScale) > biome.skyIslandZoneThreshold) {
-                voxelValue = 1;
+                voxelValue = 8;
             }
 
         }

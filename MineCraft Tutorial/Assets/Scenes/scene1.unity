@@ -152,6 +152,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14c834853601d7a43b365fb3daf936bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isVoxelMapPopulated: 0
+  position: {x: 0, y: 0, z: 0}
 --- !u!23 &125274179
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -491,7 +493,68 @@ MonoBehaviour:
     bottomFaceTexture: 29
     leftFaceTexture: 28
     rightFaceTexture: 28
+  - blockName: Leaf
+    isSolid: 1
+    backFaceTexture: 76
+    frontFaceTexture: 76
+    topFaceTexture: 76
+    bottomFaceTexture: 76
+    leftFaceTexture: 76
+    rightFaceTexture: 76
+  - blockName: SkyBlock
+    isSolid: 1
+    backFaceTexture: 96
+    frontFaceTexture: 96
+    topFaceTexture: 96
+    bottomFaceTexture: 96
+    leftFaceTexture: 96
+    rightFaceTexture: 96
+  - blockName: SnowDirt
+    isSolid: 1
+    backFaceTexture: 100
+    frontFaceTexture: 100
+    topFaceTexture: 98
+    bottomFaceTexture: 2
+    leftFaceTexture: 100
+    rightFaceTexture: 100
+  - blockName: Coal
+    isSolid: 1
+    backFaceTexture: 50
+    frontFaceTexture: 50
+    topFaceTexture: 50
+    bottomFaceTexture: 50
+    leftFaceTexture: 50
+    rightFaceTexture: 50
+  - blockName: Iron
+    isSolid: 1
+    backFaceTexture: 49
+    frontFaceTexture: 49
+    topFaceTexture: 49
+    bottomFaceTexture: 49
+    leftFaceTexture: 49
+    rightFaceTexture: 49
+  - blockName: Dimond
+    isSolid: 1
+    backFaceTexture: 74
+    frontFaceTexture: 74
+    topFaceTexture: 74
+    bottomFaceTexture: 74
+    leftFaceTexture: 74
+    rightFaceTexture: 74
+  - blockName: StoneBrick
+    isSolid: 1
+    backFaceTexture: 78
+    frontFaceTexture: 78
+    topFaceTexture: 78
+    bottomFaceTexture: 78
+    leftFaceTexture: 78
+    rightFaceTexture: 78
+  _pickup_wood: {fileID: 8101310511526687497, guid: 3ecafe3a450a14847b2db1333a7334ca,
+    type: 3}
   debugScreen: {fileID: 1221268342}
+  SleepDuration: 10000
+  CleanupDistance: 20
+  done: 0
 --- !u!4 &306482069
 Transform:
   m_ObjectHideFlags: 0

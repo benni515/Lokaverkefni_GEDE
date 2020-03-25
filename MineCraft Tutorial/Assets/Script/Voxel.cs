@@ -5,7 +5,7 @@ using UnityEngine;
 public static class Voxel {
 
     public static readonly int ChunkWidth = 16;
-    public static readonly int ChunkHeight = 128;
+    public static readonly int ChunkHeight = 180;
     // Some arbitrary size in order to have a "Center" that can be accessed and used as X,Y coords without going into minus
     // Not too large since it will cause FP errors
     public static readonly int worldSizeInChunks = 5000;
