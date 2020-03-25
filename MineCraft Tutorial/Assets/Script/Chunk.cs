@@ -233,7 +233,8 @@ public class Chunk {
 
 }
 
-public class ChunkCoord {
+public class ChunkCoord
+{
     public int x;
     public int z;
 
@@ -265,4 +266,20 @@ public class ChunkCoord {
         else
             return false;
     }
+
+    // NEEDS TO BE ACTUALLY FIXED, THESE THREE ARE USED TO LOOK UP IF TWO OBJECTS ARE THE SAME!!
+
+    public override int GetHashCode()
+    {
+        return FooID;
+    }
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Foo);
+    }
+    public bool Equals(Foo obj)
+    {
+        return obj != null && this.x == obj.x && this.z == obj.z;
+    }
+
 }

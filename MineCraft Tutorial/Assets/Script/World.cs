@@ -13,7 +13,8 @@ public class World : MonoBehaviour {
     public Material material;
     public BlockType[] blocktypes;
 
-    Chunk[,] chunks = new Chunk[Voxel.worldSizeInChunks, Voxel.worldSizeInChunks];
+    // Dict keyd on (x,y) pointing to index in chunk array
+    Dictionary<ChunkCoord, Chunk> chunkMap = new Dictionary<ChunkCoord, Chunk>();
 
     List<ChunkCoord> activeChunks = new List<ChunkCoord>();
     ChunkCoord playerChunkCoord;
@@ -70,7 +71,7 @@ public class World : MonoBehaviour {
             for(int z = (Voxel.worldSizeInChunks / 2) - Voxel.ViewDistanceInChunks; z < (Voxel.worldSizeInChunks / 2) + Voxel.ViewDistanceInChunks; z++) {
                 ChunkCoord newChunk = new ChunkCoord(x, z);
 
-                chunks[x, z] = new Chunk(newChunk, this);
+                chunkMap.Add(newChunk, new Chunk(newChunk, this));
                 chunksToCreate.Add(newChunk);
             }
         }
@@ -82,7 +83,7 @@ public class World : MonoBehaviour {
     void CreateChunk() {
         ChunkCoord c = chunksToCreate[0];
         chunksToCreate.RemoveAt(0);
-        chunks[c.x, c.z].Init();
+        chunkMap[new ChunkCoord(c.x, c.z)].Init();
     }
 
     void UpdateChunks() {
@@ -138,14 +139,15 @@ public class World : MonoBehaviour {
                 VoxelMod v = queue.Dequeue();
 
                 ChunkCoord c = GetChunkCoordFromVector3(v.position);
+                ChunkCoord newChunkCoord = new ChunkCoord(c.x, c.z);
 
-                if (chunks[c.x, c.z] == null)
+                if (!chunkMap.ContainsKey(newChunkCoord))
                 {
-                    chunks[c.x, c.z] = new Chunk(c, this);
+                    chunkMap.Add(newChunkCoord, new Chunk(c, this));
                     chunksToCreate.Add(c);
                 }
 
-                chunks[c.x, c.z].modifications.Enqueue(v);
+                chunkMap[newChunkCoord].modifications.Enqueue(v);
             }
         }
         applyingModifications = false;
@@ -163,7 +165,7 @@ public class World : MonoBehaviour {
         int x = Mathf.FloorToInt(pos.x / Voxel.ChunkWidth);
         int z = Mathf.FloorToInt(pos.z / Voxel.ChunkWidth);
 
-        return chunks[x, z];
+        return chunkMap[new ChunkCoord(x, z)];
 
     }
 
@@ -182,11 +184,11 @@ public class World : MonoBehaviour {
 
                 if (IsChunkInWorld(currChunk)) {
                     // Chunk has not been generated, generate new
-                    if (chunks[x, z] == null) {
-                        chunks[x, z] = new Chunk(currChunk, this);
+                    if (!chunkMap.ContainsKey(currChunk)) {
+                        chunkMap.Add(currChunk, new Chunk(currChunk, this));
                         chunksToCreate.Add(currChunk);
-                    } else if (!chunks[x, z].isActive) {
-                        chunks[x, z].isActive = true;
+                    } else if (!chunkMap[currChunk].isActive) {
+                        chunkMap[currChunk].isActive = true;
                     }
 
                     activeChunks.Add(currChunk);
@@ -202,7 +204,7 @@ public class World : MonoBehaviour {
         }
 
         foreach (ChunkCoord c in prevActiveChunks)
-            chunks[c.x, c.z].isActive = false;
+            chunkMap[new ChunkCoord(c.x, c.z)].isActive = false;
     }
 
     public bool CheckForVoxel (Vector3 pos)
@@ -213,8 +215,8 @@ public class World : MonoBehaviour {
         if (!IsChunkInWorld(thisChunk) || pos.y < 0 || pos.y > Voxel.ChunkHeight)
             return false;
 
-        if (chunks[thisChunk.x, thisChunk.z] != null && chunks[thisChunk.x, thisChunk.z].isVoxelMapPopulated)
-            return blocktypes[chunks[thisChunk.x, thisChunk.z].GetVoxelFromGlobalVector3(pos)].isSolid;
+        if (chunkMap.ContainsKey(thisChunk) && chunkMap[thisChunk].isVoxelMapPopulated)
+            return blocktypes[chunkMap[thisChunk].GetVoxelFromGlobalVector3(pos)].isSolid;
 
         return blocktypes[GetVoxel(pos)].isSolid;
     }
@@ -233,6 +235,7 @@ public class World : MonoBehaviour {
         if (yPos == 0)
             return 1;
 
+        
         // BASIC TERRAIN PASS
 
         int terrainHeight = Mathf.FloorToInt(Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.terrainScale) * biome.terrainHeight) + biome.solidGroundHeight;
@@ -247,6 +250,7 @@ public class World : MonoBehaviour {
         else
             voxelValue = 2;
 
+        
         // SECOND PASS
         if (voxelValue == 2)
         {
@@ -258,8 +262,8 @@ public class World : MonoBehaviour {
             }
         } 
 
-        // TREE PASS
         /*
+        // TREE PASS
         if(yPos == terrainHeight) {
             
             if(Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.treeZoneScale) > biome.treeZoneThreshold) {
