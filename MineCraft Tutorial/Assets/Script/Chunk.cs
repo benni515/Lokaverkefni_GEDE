@@ -271,15 +271,16 @@ public class ChunkCoord
 
     public override int GetHashCode()
     {
-        return FooID;
+        return (1 << 15) * x +  z;
     }
     public override bool Equals(object obj)
     {
-        return Equals(obj as Foo);
+        return obj.GetHashCode() == GetHashCode();
     }
-    public bool Equals(Foo obj)
+    /*
+    public bool Equals(ChunkCoord obj)
     {
-        return obj != null && this.x == obj.x && this.z == obj.z;
-    }
+        return obj.GetHashCode() == GetHashCode();
+    }*/
 
 }

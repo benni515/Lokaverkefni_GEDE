@@ -433,7 +433,7 @@ MonoBehaviour:
   biome: {fileID: 11400000, guid: 91eb217e567c96c43b9a6ccaa0fe953b, type: 2}
   player: {fileID: 1637224521}
   spawnPosition: {x: 0, y: 0, z: 0}
-  material: {fileID: 2100000, guid: e7b549cb4ea31534eb5da9f8f6fe1a26, type: 2}
+  material: {fileID: 2100000, guid: c7e80c59e40d9f44daea312fca0a660e, type: 2}
   blocktypes:
   - blockName: Air
     isSolid: 0
@@ -445,29 +445,13 @@ MonoBehaviour:
     rightFaceTexture: 0
   - blockName: Bedrock
     isSolid: 1
-    backFaceTexture: 9
-    frontFaceTexture: 9
-    topFaceTexture: 9
-    bottomFaceTexture: 9
-    leftFaceTexture: 9
-    rightFaceTexture: 9
+    backFaceTexture: 25
+    frontFaceTexture: 25
+    topFaceTexture: 25
+    bottomFaceTexture: 25
+    leftFaceTexture: 25
+    rightFaceTexture: 25
   - blockName: Stone
-    isSolid: 1
-    backFaceTexture: 0
-    frontFaceTexture: 0
-    topFaceTexture: 0
-    bottomFaceTexture: 0
-    leftFaceTexture: 0
-    rightFaceTexture: 0
-  - blockName: Grass
-    isSolid: 1
-    backFaceTexture: 2
-    frontFaceTexture: 2
-    topFaceTexture: 7
-    bottomFaceTexture: 1
-    leftFaceTexture: 2
-    rightFaceTexture: 2
-  - blockName: Dirt
     isSolid: 1
     backFaceTexture: 1
     frontFaceTexture: 1
@@ -475,22 +459,38 @@ MonoBehaviour:
     bottomFaceTexture: 1
     leftFaceTexture: 1
     rightFaceTexture: 1
+  - blockName: Grass
+    isSolid: 1
+    backFaceTexture: 3
+    frontFaceTexture: 3
+    topFaceTexture: 0
+    bottomFaceTexture: 2
+    leftFaceTexture: 3
+    rightFaceTexture: 3
+  - blockName: Dirt
+    isSolid: 1
+    backFaceTexture: 2
+    frontFaceTexture: 2
+    topFaceTexture: 2
+    bottomFaceTexture: 2
+    leftFaceTexture: 2
+    rightFaceTexture: 2
   - blockName: Sand
     isSolid: 1
-    backFaceTexture: 10
-    frontFaceTexture: 10
-    topFaceTexture: 10
-    bottomFaceTexture: 10
-    leftFaceTexture: 10
-    rightFaceTexture: 10
+    backFaceTexture: 26
+    frontFaceTexture: 26
+    topFaceTexture: 26
+    bottomFaceTexture: 26
+    leftFaceTexture: 26
+    rightFaceTexture: 26
   - blockName: Wood
     isSolid: 1
-    backFaceTexture: 5
-    frontFaceTexture: 5
-    topFaceTexture: 6
-    bottomFaceTexture: 6
-    leftFaceTexture: 5
-    rightFaceTexture: 5
+    backFaceTexture: 28
+    frontFaceTexture: 28
+    topFaceTexture: 29
+    bottomFaceTexture: 29
+    leftFaceTexture: 28
+    rightFaceTexture: 28
   debugScreen: {fileID: 1221268342}
 --- !u!4 &306482069
 Transform:

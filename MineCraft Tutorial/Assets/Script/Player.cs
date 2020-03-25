@@ -67,7 +67,7 @@ public class Player : MonoBehaviour
     private void Update()
     {
         GetPlayerInputs();
-        //placeCursorBlock();
+        placeCursorBlock();
     }
 
     void Jump()

@@ -12,13 +12,17 @@ public class BiomeAttributes : ScriptableObject
     public float terrainScale;
 
 
+    [Header("Skyland")]
+    public float skyIslandZoneScale = 1.3f;
+    public float skyIslandZoneThreshold = 0.6f;
+
     [Header("Trees")]
     public float treeZoneScale = 1.3f;
     [Range(0.1f, 1f)]
     public float treeZoneThreshold = 0.6f;
     public float treePlacementScale = 15f;
     [Range(0.1f, 1f)]
-    public float treePlacementThreshold = 0.2f;
+    public float treePlacementThreshold = 0.95f;
 
     public int maxTreeHeight = 12;
     public int minTreeHeight = 5;

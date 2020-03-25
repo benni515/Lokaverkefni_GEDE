@@ -14,9 +14,9 @@ public static class Voxel {
 
     public static readonly int ViewDistanceInChunks = 5;
 
-    public static readonly int TextureAtlasSizeInBlocks = 4;
+    public static readonly int TextureAtlasSizeInBlocks = 24;
     public static float NormalizeBlockTextureSize {
-        get { return 1f / (float)TextureAtlasSizeInBlocks; }
+        get { return 1.0f / (float)TextureAtlasSizeInBlocks; }
     }
 
     public static readonly Vector3[] voxelVerts = new Vector3[8] {

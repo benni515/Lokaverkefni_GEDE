@@ -245,10 +245,12 @@ public class World : MonoBehaviour {
             voxelValue = 3;
         else if (yPos < terrainHeight && yPos > terrainHeight - 4)
             voxelValue = 4;
-        else if (yPos > terrainHeight)
-            return 0;
-        else
+        else if (yPos > terrainHeight) {
+            // I don't wanna use this anymore because i want sky-islands
+        }
+        else {
             voxelValue = 2;
+        }
 
         
         // SECOND PASS
@@ -262,31 +264,39 @@ public class World : MonoBehaviour {
             }
         } 
 
-        /*
         // TREE PASS
         if(yPos == terrainHeight) {
             
             if(Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.treeZoneScale) > biome.treeZoneThreshold) {
+                Queue<VoxelMod> hold_queue = new Queue<VoxelMod>();
                 // Set voxelValuie = 1, so see what the area will be for the trees
-                voxelValue = 1;
+                //voxelValue = 1;
                 if (Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.treePlacementScale) > biome.treePlacementThreshold) {
                     //voxelValue = 5;
                     int height = Random.Range(biome.minTreeHeight, biome.maxTreeHeight);
                     for(int i = 1; i <= height; i++) {
-                        modifications.Enqueue(new VoxelMod(new Vector3(pos.x, pos.y + i, pos.z), 6));
+                        hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x, pos.y + i, pos.z), 6));
                     }
                     for(int i = -2; i <= 2; i++) {
                         for (int j = -2; j <= 2; j++) {
                             for (int z = -1; z <= 2; z++) { 
                                 if (i == 0 && j == 0 && z <= 0) continue;
-                                modifications.Enqueue(new VoxelMod(new Vector3(pos.x + i, pos.y + height + z, pos.z + j), 3));
+                                hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x + i, pos.y + height + z, pos.z + j), 3));
                             }
                         }
                     }
+                    modifications.Enqueue(hold_queue);
                 }
             }
         }
-        */
+
+        // Island Generation
+        if(yPos == terrainHeight + 50) {
+            if (Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.skyIslandZoneScale) > biome.skyIslandZoneThreshold) {
+                voxelValue = 1;
+            }
+
+        }
 
         return voxelValue;
     }
