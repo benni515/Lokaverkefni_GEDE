@@ -24,21 +24,30 @@ public class World : MonoBehaviour {
     public List<Chunk> chunksToUpdate = new List<Chunk>();
     public Queue<Chunk> chunksToDraw = new Queue<Chunk>();
 
-
     Queue<Queue<VoxelMod>> modifications = new Queue<Queue<VoxelMod>>();
 
     bool applyingModifications = false;
 
     public GameObject debugScreen;
 
+    // thread and lock to create chunks
     Thread ChunkUpdateThread;
     public object ChunkUpdateThreadLock = new object();
+
+    // Thread to clean up old chunks
+    Thread CleanupThread;
+    public int SleepDuration = 10000;
+    public int CleanupDistance = 20; // Distance in chunks
 
     private void Start() {
         Random.InitState(seed);
 
         ChunkUpdateThread = new Thread(new ThreadStart(ThreadedUpdate));
         ChunkUpdateThread.Start();
+
+        // NEED TO REMOVE FROM UPDATE AND CREATE LIST FIRST! OR ELSE THIS WILL CAUSE AN ERROR AND BREAK STUFF
+        //CleanupThread = new Thread(new ThreadStart(Cleanup));
+        //CleanupThread.Start();
 
         spawnPosition = new Vector3((Voxel.worldSizeInChunks * Voxel.ChunkWidth) / 2f, Voxel.ChunkHeight - 50f, (Voxel.worldSizeInChunks * Voxel.ChunkWidth) / 2f);
         GenerateWorld();
@@ -78,6 +87,45 @@ public class World : MonoBehaviour {
 
         player.position = spawnPosition;
         CheckViewDistance();
+    }
+
+    // Remove blocks from hashmap that are too far away to be used anytime soon
+    void Cleanup()
+    {
+        while (true)
+        {
+            Thread.Sleep(SleepDuration);
+            // Get all keys from the dict and check the distance to the player,
+            // if more than CleanupDistance remove the chunk
+
+            List<ChunkCoord> listToRemove = new List<ChunkCoord>();
+            listToRemove.Clear();
+
+            lock (ChunkUpdateThreadLock)
+            {
+                foreach (ChunkCoord key in chunkMap.Keys)
+                {
+                    if (DistBetweenPointsSQ(key, playerChunkCoord) > (CleanupDistance * CleanupDistance))
+                    {
+                        listToRemove.Add(key);
+                    }
+                }
+
+                // Loop through and delete items
+                foreach (ChunkCoord item in listToRemove)
+                {
+                    if (chunkMap.ContainsKey(item))
+                    {
+                        chunkMap.Remove(item);
+                    }
+                }
+            }
+        }
+    }
+
+    int DistBetweenPointsSQ(ChunkCoord p1, ChunkCoord p2)
+    {
+        return ((p1.x - p2.x) * (p1.x - p2.x)) + (p1.z - p2.z) * (p1.z - p2.z);
     }
 
     void CreateChunk() {
