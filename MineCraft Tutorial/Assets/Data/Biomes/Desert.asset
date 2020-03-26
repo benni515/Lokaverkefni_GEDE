@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba6c491ab6c24854c925d4e43b5b691c, type: 3}
+  m_Name: Desert
+  m_EditorClassIdentifier: 
+  biomeName: Desert
+  solidGroundHeight: 40
+  terrainHeight: 40
+  terrainScale: 0.1
+  highLevelBlock: 5
+  normalLevelBlock: 5
+  littleBelowNormalBlock: 5
+  biomeProbability: 0.333
+  biomeOffsetProb: 0.005
+  skyIslandZoneScale: 1.3
+  skyIslandZoneThreshold: 0.6
+  treeZoneScale: 1.3
+  treeZoneThreshold: 0.6
+  treePlacementScale: 15
+  treePlacementThreshold: 0.685
+  maxTreeHeight: 12
+  minTreeHeight: 5
+  lodes:
+  - nodeName: Dirt
+    blockID: 4
+    minHeight: 1
+    maxHeight: 255
+    scale: 0.2
+    threshold: 0.6
+    noiseOffset: 0
+  - nodeName: Sand
+    blockID: 5
+    minHeight: 30
+    maxHeight: 60
+    scale: 0.2
+    threshold: 0.6
+    noiseOffset: 500
+  - nodeName: Coal
+    blockID: 10
+    minHeight: 1
+    maxHeight: 60
+    scale: 0.6
+    threshold: 0.55
+    noiseOffset: 500
+  - nodeName: Iron
+    blockID: 11
+    minHeight: 1
+    maxHeight: 60
+    scale: 0.6
+    threshold: 0.6
+    noiseOffset: 1500
+  - nodeName: Dimond
+    blockID: 12
+    minHeight: 1
+    maxHeight: 25
+    scale: 0.5
+    threshold: 0.6
+    noiseOffset: 15000

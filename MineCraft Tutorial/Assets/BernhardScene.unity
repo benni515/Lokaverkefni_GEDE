@@ -431,8 +431,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa408f9f7466a0a4f9b964b7dae8bd01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  seed: 47354930
-  biome: {fileID: 11400000, guid: 91eb217e567c96c43b9a6ccaa0fe953b, type: 2}
+  seed: 424
+  biomes:
+  - {fileID: 11400000, guid: a20396c5b57a326438f25d29af66fbbe, type: 2}
+  - {fileID: 11400000, guid: 91eb217e567c96c43b9a6ccaa0fe953b, type: 2}
+  - {fileID: 11400000, guid: 691dd68e16a1fdc49af965ab89110e37, type: 2}
   player: {fileID: 1637224521}
   spawnPosition: {x: 0, y: 0, z: 0}
   material: {fileID: 2100000, guid: c7e80c59e40d9f44daea312fca0a660e, type: 2}
@@ -549,6 +552,30 @@ MonoBehaviour:
     bottomFaceTexture: 78
     leftFaceTexture: 78
     rightFaceTexture: 78
+  - blockName: Cactus
+    isSolid: 1
+    backFaceTexture: 102
+    frontFaceTexture: 102
+    topFaceTexture: 103
+    bottomFaceTexture: 103
+    leftFaceTexture: 102
+    rightFaceTexture: 102
+  - blockName: CactusTop
+    isSolid: 1
+    backFaceTexture: 102
+    frontFaceTexture: 102
+    topFaceTexture: 101
+    bottomFaceTexture: 103
+    leftFaceTexture: 102
+    rightFaceTexture: 102
+  - blockName: SandBlock
+    isSolid: 1
+    backFaceTexture: 288
+    frontFaceTexture: 288
+    topFaceTexture: 264
+    bottomFaceTexture: 264
+    leftFaceTexture: 288
+    rightFaceTexture: 288
   _pickup_wood: {fileID: 8101310511526687497, guid: 3ecafe3a450a14847b2db1333a7334ca,
     type: 3}
   debugScreen: {fileID: 1221268342}

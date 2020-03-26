@@ -6,7 +6,7 @@ using System;
 
 public class World : MonoBehaviour {
     public int seed;
-    public BiomeAttributes biome;
+    public BiomeAttributes[] biomes;
 
     public Transform player;
     public Vector3 spawnPosition;
@@ -306,23 +306,67 @@ public class World : MonoBehaviour {
         if (yPos == 0)
             return 1;
 
+        // BIOME SELECTION PASS
+
+        int index = 0;
+        float value = Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 142124, 0.05f);
+        float prob_off = 0;
+
+        float hold_terrainHeight = 0;
+        float hold_terrainScale = 0;
+        float hold_solidGroundHeight = 0;
+
+        for(int i = 0; i < biomes.Length; i++) {
+            prob_off += biomes[i].biomeProbability;
+            if(Math.Abs(value - prob_off) < 0.05 && Math.Abs(prob_off - 1.0f) > 0.05) {
+                if (value < prob_off && index + 1 != biomes.Length) {
+                    float distance = (prob_off-value)/0.05f;
+                    float distance2 = 1.0f - distance;
+
+                    hold_terrainHeight = (biomes[i].terrainHeight * distance + biomes[i + 1].terrainHeight * distance2);
+                    hold_solidGroundHeight = (biomes[i].solidGroundHeight * distance + biomes[i + 1].solidGroundHeight * distance2);
+                    hold_terrainScale = (biomes[i].terrainScale * distance + biomes[i + 1].terrainScale * distance2);
+                    index = i;
+                    break;
+                }
+                else{
+                    float distance = (value-prob_off)/0.05f;
+                    float distance2 = 1.0f - distance;
+
+
+                    hold_terrainHeight = (biomes[i+1].terrainHeight * distance + biomes[i].terrainHeight * distance2);
+                    hold_solidGroundHeight = (biomes[i+1].solidGroundHeight * distance + biomes[i].solidGroundHeight * distance2);
+                    hold_terrainScale = (biomes[i+1].terrainScale * distance + biomes[i].terrainScale * distance2);
+                    index = i + 1;
+                    break;
+                }
+            } if(value <= prob_off) {
+                hold_terrainHeight = biomes[i].terrainHeight;
+                hold_solidGroundHeight = biomes[i].solidGroundHeight;
+                hold_terrainScale = biomes[i].terrainScale;
+                index = i;
+                break;
+            } 
+        }
+
+        BiomeAttributes biome = biomes[index];
+
 
         // BASIC TERRAIN PASS
 
-        int terrainHeight = Mathf.FloorToInt(Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.terrainScale) * biome.terrainHeight) + biome.solidGroundHeight;
+        int terrainHeight = Mathf.FloorToInt(Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.terrainScale) * biome.terrainHeight) + (int)hold_solidGroundHeight;
         byte voxelValue = 0;
 
         if (yPos == terrainHeight) { 
-            if (yPos >= (70 + UnityEngine.Random.Range(-1,1))) {
+            if (yPos >= (87 + UnityEngine.Random.Range(-1,1))) {
                 // So high up we get snow
-                voxelValue = 9;
+                voxelValue = biome.highLevelBlock;
             } else {
-                voxelValue = 3;
+                voxelValue = biome.normalLevelBlock;
             }
-
          }
         else if (yPos < terrainHeight && yPos > terrainHeight - 4)
-            voxelValue = 4;
+            voxelValue = biome.littleBelowNormalBlock;
         else if (yPos > terrainHeight) {
             // I don't wanna use this anymore because i want sky-islands
         }
@@ -342,8 +386,10 @@ public class World : MonoBehaviour {
             }
         } 
 
+        // Make biome specific structures.
+
         // TREE PASS
-        if(yPos == terrainHeight) {
+        if(yPos == terrainHeight && biome.biomeName == "Plain") {
             
             if(Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.treeZoneScale) > biome.treeZoneThreshold) {
                 Queue<VoxelMod> hold_queue = new Queue<VoxelMod>();
@@ -367,9 +413,68 @@ public class World : MonoBehaviour {
                 }
             }
         }
+        
+
+        // Make cactus
+        if(yPos == terrainHeight && biome.biomeName == "Desert") {
+            
+            if(Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, 0.99f) > 0.5f) {
+                Queue<VoxelMod> hold_queue = new Queue<VoxelMod>();
+                // Set voxelValuie = 1, so see what the area will be for the trees
+                if(UnityEngine.Random.Range(1,80) == 1) {
+                    //voxelValue = 5;
+                    int height = UnityEngine.Random.Range(3,4);
+                    for(int i = 1; i <= height; i++) {
+                        if (i == height) {
+                            hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x, pos.y + i, pos.z), 15));
+                        }
+                        else {
+                            hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x, pos.y + i, pos.z), 14));
+                        }
+                    }
+                    modifications.Enqueue(hold_queue);
+                }
+            }
+        }
+        
+        // Make pyramid in desert
+
+         if(yPos == terrainHeight && biome.biomeName == "Desert") {
+            
+            if(Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 570, biome.treeZoneScale) > 0.7) {
+                Queue<VoxelMod> hold_queue = new Queue<VoxelMod>();
+                // Set voxelValuie = 1, so see what the area will be for the houses
+                //voxelValue = 1;
+                if (Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.treePlacementScale) > 0.95) {
+                    //voxelValue = 5;
+
+                    int size = 2*UnityEngine.Random.Range(5, 10);
+
+                    for(int i = 1; i <= size; i++) {
+                        for (int j = 1; j <= size; j++) {
+                            hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x+i, pos.y, pos.z+j), 5));
+                        }
+                    }
+
+
+                    for(int z = 1; z <= size/2; z++) {
+                        for (int j = 1 + (z - 1); j <= (size - (z - 1)); j++) {
+                            for (int i = 1 + (z - 1); i <= (size - (z - 1)); i++) {
+                                hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x+i, pos.y + z, pos.z+j), 16));
+                            }
+                        }
+                    }
+
+
+
+                    
+                    modifications.Enqueue(hold_queue);
+                }
+            }
+        }
 
         // Make houses
-         if(yPos == terrainHeight) {
+         if(yPos == terrainHeight && biome.biomeName == "Plain") {
             
             if(Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 570, biome.treeZoneScale) > 0.7) {
                 Queue<VoxelMod> hold_queue = new Queue<VoxelMod>();
@@ -434,13 +539,15 @@ public class World : MonoBehaviour {
             }
         }
 
-        // Island Generation
+        // Cloud Generation Generation
         if(Math.Abs(yPos - (120 + UnityEngine.Random.Range(-1,1))) <= 1) {
             if (Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.skyIslandZoneScale) > biome.skyIslandZoneThreshold) {
                 voxelValue = 8;
             }
+        }  
+        
+        // Make Lakes
 
-        }
 
         return voxelValue;
     }

@@ -11,6 +11,14 @@ public class BiomeAttributes : ScriptableObject
     public int terrainHeight;
     public float terrainScale;
 
+    public byte highLevelBlock;
+    public byte normalLevelBlock;
+    public byte littleBelowNormalBlock;
+    public float biomeProbability;
+
+
+    public float biomeOffsetProb = 0.005f;
+
 
     [Header("Skyland")]
     public float skyIslandZoneScale = 1.3f;
