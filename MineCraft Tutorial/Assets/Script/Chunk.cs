@@ -23,6 +23,7 @@ public class Chunk : MonoBehaviour {
     private bool _isActive;
     public bool isVoxelMapPopulated = false;
     private bool _isUpdating = false;
+    public bool isInitialized = false;
 
     public Vector3 position;
 
@@ -45,7 +46,7 @@ public class Chunk : MonoBehaviour {
         chunkObject.name = "Chunk " + coord.x + ", " + coord.z;
         position = chunkObject.transform.position;
 
-        PopulateVoxelMap();
+        isInitialized = true;
     }
 
     void UpdateMeshData(Vector3 pos) {
@@ -87,10 +88,12 @@ public class Chunk : MonoBehaviour {
         meshfilter.mesh = mesh;
     }
 
-    void PopulateVoxelMap() {
+    // ONLY TO BE CALLED WHEN INITING THE CHUNK
+    public void PopulateVoxelMap() {
         for(int x = 0; x < Voxel.ChunkWidth; x++) {
             for (int y = 0; y < Voxel.ChunkHeight; y++) {
                 for (int z = 0; z < Voxel.ChunkWidth; z++) {
+                    // Heavy stuff
                     voxelMap[x, y, z] = world.GetVoxel(new Vector3(x, y, z) + position);
                 }
             }

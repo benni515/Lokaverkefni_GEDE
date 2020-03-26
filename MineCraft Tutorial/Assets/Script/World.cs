@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Threading;
 using System;
+using System.Collections.Concurrent;
 
 public class World : MonoBehaviour {
     public int seed;
@@ -18,7 +19,7 @@ public class World : MonoBehaviour {
     public GameObject _pickup_wood;
 
     // Dict keyd on (x,y) pointing to index in chunk array
-    Dictionary<ChunkCoord, Chunk> chunkMap = new Dictionary<ChunkCoord, Chunk>();
+    ConcurrentDictionary<ChunkCoord, Chunk> chunkMap = new ConcurrentDictionary<ChunkCoord, Chunk>();
 
     List<ChunkCoord> activeChunks = new List<ChunkCoord>();
     ChunkCoord playerChunkCoord;
@@ -43,8 +44,11 @@ public class World : MonoBehaviour {
     public int SleepDuration = 10000;
     public int CleanupDistance = 20; // Distance in chunks
 
+    System.Random rnd;
+
     private void Start() {
         UnityEngine.Random.InitState(seed);
+        rnd = new System.Random(seed);
 
         ChunkUpdateThread = new Thread(new ThreadStart(ThreadedUpdate));
         ChunkUpdateThread.Start();
@@ -62,25 +66,19 @@ public class World : MonoBehaviour {
 
     private void FixedUpdate() {
         playerChunkCoord = GetChunkCoordFromVector3(player.position);
-
-        /*
+        
         if (!playerChunkCoord.Equals(playerLastChunkCoord)) { 
-            CheckViewDistance();
-        } */
-
-        // For checking without view distance
-        if (!playerChunkCoord.Equals(playerLastChunkCoord) && !done) { 
-            done = true;
             CheckViewDistance();
         }
 
-        if(chunksToCreate.Count > 0 ) {
+        if (chunksToCreate.Count > 0)
+        {
             CreateChunk();
         }
 
         if (chunksToDraw.Count > 0)
         {
-            if (chunksToDraw.Peek().isEditable) {
+            if (chunksToDraw.Peek().isEditable && chunksToDraw.Peek().isVoxelMapPopulated) {
                 Chunk hold = chunksToDraw.Dequeue();
                 hold.CreateMesh();
             } else {
@@ -88,10 +86,18 @@ public class World : MonoBehaviour {
                 chunksToDraw.Enqueue(hold);
             }
         }
+        
 
         // Enable debug
         if (Input.GetKeyDown(KeyCode.F3))
             debugScreen.SetActive(!debugScreen.activeSelf);
+    }
+
+    void CreateChunk()
+    {
+        ChunkCoord c = chunksToCreate[0];
+        chunksToCreate.RemoveAt(0);
+        chunkMap[new ChunkCoord(c.x, c.z)].Init();
     }
 
     void GenerateWorld() {
@@ -99,7 +105,7 @@ public class World : MonoBehaviour {
             for(int z = (Voxel.worldSizeInChunks / 2) - Voxel.ViewDistanceInChunks; z < (Voxel.worldSizeInChunks / 2) + Voxel.ViewDistanceInChunks; z++) {
                 ChunkCoord newChunk = new ChunkCoord(x, z);
 
-                chunkMap.Add(newChunk, new Chunk(newChunk, this));
+                chunkMap.TryAdd(newChunk, new Chunk(newChunk, this));
                 chunksToCreate.Add(newChunk);
             }
         }
@@ -135,7 +141,8 @@ public class World : MonoBehaviour {
                 {
                     if (chunkMap.ContainsKey(item))
                     {
-                        chunkMap.Remove(item);
+                        var a = chunkMap[item];
+                        chunkMap.TryRemove(item, out a);
                     }
                 }
             }
@@ -145,12 +152,6 @@ public class World : MonoBehaviour {
     int DistBetweenPointsSQ(ChunkCoord p1, ChunkCoord p2)
     {
         return ((p1.x - p2.x) * (p1.x - p2.x)) + (p1.z - p2.z) * (p1.z - p2.z);
-    }
-
-    void CreateChunk() {
-        ChunkCoord c = chunksToCreate[0];
-        chunksToCreate.RemoveAt(0);
-        chunkMap[new ChunkCoord(c.x, c.z)].Init();
     }
 
     void UpdateChunks() {
@@ -180,6 +181,15 @@ public class World : MonoBehaviour {
     {
         while (true)
         {
+            // Loop through chunks and init the voxel map
+            foreach (var c in chunkMap.Keys)
+            {
+                if (!chunkMap[c].isVoxelMapPopulated && chunkMap[c].isInitialized)
+                {
+                    chunkMap[c].PopulateVoxelMap();
+                }
+            }
+
             if (modifications.Count > 0 && !applyingModifications)
             {
                 ApplyModifications();
@@ -199,7 +209,6 @@ public class World : MonoBehaviour {
     
     void ApplyModifications () {
         applyingModifications = true;
-        int count = 0;
 
         while (modifications.Count > 0)
         {
@@ -214,7 +223,7 @@ public class World : MonoBehaviour {
 
                 if (!chunkMap.ContainsKey(newChunkCoord))
                 {
-                    chunkMap.Add(newChunkCoord, new Chunk(c, this));
+                    chunkMap.TryAdd(newChunkCoord, new Chunk(c, this));
                     chunksToCreate.Add(c);
                 }
 
@@ -256,7 +265,7 @@ public class World : MonoBehaviour {
                 if (IsChunkInWorld(currChunk)) {
                     // Chunk has not been generated, generate new
                     if (!chunkMap.ContainsKey(currChunk)) {
-                        chunkMap.Add(currChunk, new Chunk(currChunk, this));
+                        chunkMap.TryAdd(currChunk, new Chunk(currChunk, this));
                         chunksToCreate.Add(currChunk);
                     } else if (!chunkMap[currChunk].isActive) {
                         chunkMap[currChunk].isActive = true;
@@ -313,13 +322,14 @@ public class World : MonoBehaviour {
         byte voxelValue = 0;
 
         if (yPos == terrainHeight) { 
-            if (yPos >= (70 + UnityEngine.Random.Range(-1,1))) {
+            
+            if (yPos >= (70 + rnd.Next(-1, 1))) {
                 // So high up we get snow
                 voxelValue = 9;
             } else {
                 voxelValue = 3;
             }
-
+            
          }
         else if (yPos < terrainHeight && yPos > terrainHeight - 4)
             voxelValue = 4;
@@ -330,7 +340,6 @@ public class World : MonoBehaviour {
             voxelValue = 2;
         }
 
-        
         // SECOND PASS
         if (voxelValue == 2)
         {
@@ -340,7 +349,7 @@ public class World : MonoBehaviour {
                     if (Noise.Get3DPerlin(pos, lode.noiseOffset, lode.scale, lode.threshold))
                         voxelValue = lode.blockID;
             }
-        } 
+        }
 
         // TREE PASS
         if(yPos == terrainHeight) {
@@ -349,9 +358,10 @@ public class World : MonoBehaviour {
                 Queue<VoxelMod> hold_queue = new Queue<VoxelMod>();
                 // Set voxelValuie = 1, so see what the area will be for the trees
                 //voxelValue = 1;
+                
                 if (Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.treePlacementScale) > biome.treePlacementThreshold) {
                     //voxelValue = 5;
-                    int height = UnityEngine.Random.Range(biome.minTreeHeight, biome.maxTreeHeight);
+                    int height = rnd.Next(biome.minTreeHeight, biome.maxTreeHeight);
                     for(int i = 1; i <= height; i++) {
                         hold_queue.Enqueue(new VoxelMod(new Vector3(pos.x, pos.y + i, pos.z), 6));
                     }
@@ -368,6 +378,7 @@ public class World : MonoBehaviour {
             }
         }
 
+        
         // Make houses
          if(yPos == terrainHeight) {
             
@@ -435,7 +446,7 @@ public class World : MonoBehaviour {
         }
 
         // Island Generation
-        if(Math.Abs(yPos - (120 + UnityEngine.Random.Range(-1,1))) <= 1) {
+        if(Math.Abs(yPos - (120 + rnd.Next(-1,1))) <= 1) {
             if (Noise.Get2DPerlin(new Vector2(pos.x, pos.z), 0, biome.skyIslandZoneScale) > biome.skyIslandZoneThreshold) {
                 voxelValue = 8;
             }
