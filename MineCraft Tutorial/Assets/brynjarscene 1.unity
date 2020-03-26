@@ -153,6 +153,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isVoxelMapPopulated: 0
+  isInitialized: 0
   position: {x: 0, y: 0, z: 0}
 --- !u!23 &125274179
 MeshRenderer:
@@ -432,13 +433,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   seed: 47354930
-  biome: {fileID: 11400000, guid: 91eb217e567c96c43b9a6ccaa0fe953b, type: 2}
+  biomes:
+  - {fileID: 11400000, guid: a20396c5b57a326438f25d29af66fbbe, type: 2}
+  - {fileID: 11400000, guid: 91eb217e567c96c43b9a6ccaa0fe953b, type: 2}
+  - {fileID: 11400000, guid: 691dd68e16a1fdc49af965ab89110e37, type: 2}
   player: {fileID: 1637224521}
   spawnPosition: {x: 0, y: 0, z: 0}
   material: {fileID: 2100000, guid: c7e80c59e40d9f44daea312fca0a660e, type: 2}
+  transparentMaterial: {fileID: 2100000, guid: 831519cb8acb3ec48a6a33b7e1c5413c, type: 2}
   blocktypes:
   - blockName: Air
     isSolid: 0
+    isTransparent: 0
     backFaceTexture: 0
     frontFaceTexture: 0
     topFaceTexture: 0
@@ -447,6 +453,7 @@ MonoBehaviour:
     rightFaceTexture: 0
   - blockName: Bedrock
     isSolid: 1
+    isTransparent: 0
     backFaceTexture: 25
     frontFaceTexture: 25
     topFaceTexture: 25
@@ -455,6 +462,7 @@ MonoBehaviour:
     rightFaceTexture: 25
   - blockName: Stone
     isSolid: 1
+    isTransparent: 0
     backFaceTexture: 1
     frontFaceTexture: 1
     topFaceTexture: 1
@@ -463,6 +471,7 @@ MonoBehaviour:
     rightFaceTexture: 1
   - blockName: Grass
     isSolid: 1
+    isTransparent: 0
     backFaceTexture: 3
     frontFaceTexture: 3
     topFaceTexture: 0
@@ -471,6 +480,7 @@ MonoBehaviour:
     rightFaceTexture: 3
   - blockName: Dirt
     isSolid: 1
+    isTransparent: 0
     backFaceTexture: 2
     frontFaceTexture: 2
     topFaceTexture: 2
@@ -479,6 +489,7 @@ MonoBehaviour:
     rightFaceTexture: 2
   - blockName: Sand
     isSolid: 1
+    isTransparent: 0
     backFaceTexture: 26
     frontFaceTexture: 26
     topFaceTexture: 26
@@ -487,6 +498,7 @@ MonoBehaviour:
     rightFaceTexture: 26
   - blockName: Wood
     isSolid: 1
+    isTransparent: 0
     backFaceTexture: 28
     frontFaceTexture: 28
     topFaceTexture: 29
@@ -495,6 +507,7 @@ MonoBehaviour:
     rightFaceTexture: 28
   - blockName: Leaf
     isSolid: 1
+    isTransparent: 0
     backFaceTexture: 76
     frontFaceTexture: 76
     topFaceTexture: 76
@@ -503,6 +516,7 @@ MonoBehaviour:
     rightFaceTexture: 76
   - blockName: SkyBlock
     isSolid: 1
+    isTransparent: 0
     backFaceTexture: 96
     frontFaceTexture: 96
     topFaceTexture: 96
@@ -511,6 +525,7 @@ MonoBehaviour:
     rightFaceTexture: 96
   - blockName: SnowDirt
     isSolid: 1
+    isTransparent: 0
     backFaceTexture: 100
     frontFaceTexture: 100
     topFaceTexture: 98
@@ -519,6 +534,7 @@ MonoBehaviour:
     rightFaceTexture: 100
   - blockName: Coal
     isSolid: 1
+    isTransparent: 0
     backFaceTexture: 50
     frontFaceTexture: 50
     topFaceTexture: 50
@@ -527,6 +543,7 @@ MonoBehaviour:
     rightFaceTexture: 50
   - blockName: Iron
     isSolid: 1
+    isTransparent: 0
     backFaceTexture: 49
     frontFaceTexture: 49
     topFaceTexture: 49
@@ -535,6 +552,7 @@ MonoBehaviour:
     rightFaceTexture: 49
   - blockName: Dimond
     isSolid: 1
+    isTransparent: 0
     backFaceTexture: 74
     frontFaceTexture: 74
     topFaceTexture: 74
@@ -543,6 +561,7 @@ MonoBehaviour:
     rightFaceTexture: 74
   - blockName: StoneBrick
     isSolid: 1
+    isTransparent: 0
     backFaceTexture: 78
     frontFaceTexture: 78
     topFaceTexture: 78

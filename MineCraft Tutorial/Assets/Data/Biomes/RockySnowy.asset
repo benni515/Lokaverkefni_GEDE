@@ -12,10 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba6c491ab6c24854c925d4e43b5b691c, type: 3}
   m_Name: RockySnowy
   m_EditorClassIdentifier: 
-  biomeName: Default
+  biomeName: RockySnowy
   solidGroundHeight: 70
   terrainHeight: 70
   terrainScale: 0.85
+  highLevelBlock: 9
+  normalLevelBlock: 3
+  littleBelowNormalBlock: 4
+  biomeProbability: 0.333
+  biomeOffsetProb: 0.005
   skyIslandZoneScale: 1.3
   skyIslandZoneThreshold: 0.6
   treeZoneScale: 1.3

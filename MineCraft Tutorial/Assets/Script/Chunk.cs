@@ -14,6 +14,10 @@ public class Chunk : MonoBehaviour {
     private List<int> triangles = new List<int>();
     private List<Vector2> uvs = new List<Vector2>();
 
+
+    private List<int> transparentTriangles = new List<int>();
+    private Material[] materials = new Material[2];
+
     public byte[,,] voxelMap = new byte[Voxel.ChunkWidth, Voxel.ChunkHeight, Voxel.ChunkWidth];
 
     public Queue<VoxelMod> modifications = new Queue<VoxelMod>();
@@ -40,7 +44,10 @@ public class Chunk : MonoBehaviour {
         meshfilter = chunkObject.AddComponent<MeshFilter>();
         meshrenderer = chunkObject.AddComponent<MeshRenderer>();
 
-        meshrenderer.material = world.material;
+        materials[0] = world.material;
+        materials[1] = world.transparentMaterial;
+        meshrenderer.materials = materials;
+
         chunkObject.transform.SetParent(world.transform);
         chunkObject.transform.position = new Vector3(coord.x * Voxel.ChunkWidth, 0f, coord.z * Voxel.ChunkWidth);
         chunkObject.name = "Chunk " + coord.x + ", " + coord.z;
@@ -50,12 +57,15 @@ public class Chunk : MonoBehaviour {
     }
 
     void UpdateMeshData(Vector3 pos) {
+        byte blockID = voxelMap[(int)pos.x, (int)pos.y, (int)pos.z];
+        bool isTransparent = world.blocktypes[blockID].isTransparent;
+
+
         for (int p = 0; p < 6; p++) {
 
             // Only draw faces if there isn't another face there
-            if(!CheckVoxel(pos + Voxel.faceChecks[p])) {
+            if(CheckVoxelTransparent(pos + Voxel.faceChecks[p]) || !CheckVoxel(pos + Voxel.faceChecks[p])) {
 
-                byte blockID = voxelMap[(int)pos.x, (int)pos.y, (int)pos.z];
 
                 vertices.Add(pos + Voxel.voxelVerts[Voxel.voxelTris[p, 0]]);
                 vertices.Add(pos + Voxel.voxelVerts[Voxel.voxelTris[p, 1]]);
@@ -65,12 +75,21 @@ public class Chunk : MonoBehaviour {
                 // Add correct face to block
                 AddTexture(world.blocktypes[blockID].GetTextureID(p));
 
-                triangles.Add(vertexIndex);
-                triangles.Add(vertexIndex + 1);
-                triangles.Add(vertexIndex + 2);
-                triangles.Add(vertexIndex + 2);
-                triangles.Add(vertexIndex + 1);
-                triangles.Add(vertexIndex + 3);
+                if (!isTransparent) {
+                    triangles.Add(vertexIndex);
+                    triangles.Add(vertexIndex + 1);
+                    triangles.Add(vertexIndex + 2);
+                    triangles.Add(vertexIndex + 2);
+                    triangles.Add(vertexIndex + 1);
+                    triangles.Add(vertexIndex + 3);
+                } else {
+                    transparentTriangles.Add(vertexIndex);
+                    transparentTriangles.Add(vertexIndex + 1);
+                    transparentTriangles.Add(vertexIndex + 2);
+                    transparentTriangles.Add(vertexIndex + 2);
+                    transparentTriangles.Add(vertexIndex + 1);
+                    transparentTriangles.Add(vertexIndex + 3);
+                }
                 vertexIndex += 4;
 
             }
@@ -80,7 +99,11 @@ public class Chunk : MonoBehaviour {
     public void CreateMesh() {
         Mesh mesh = new Mesh();
         mesh.vertices = vertices.ToArray();
-        mesh.triangles = triangles.ToArray();
+
+        mesh.subMeshCount = 2;
+        mesh.SetTriangles(triangles.ToArray(), 0);
+        mesh.SetTriangles(transparentTriangles.ToArray(), 1);
+
         mesh.uv = uvs.ToArray();
 
         mesh.RecalculateNormals();
@@ -182,7 +205,19 @@ public class Chunk : MonoBehaviour {
             return world.CheckForVoxel(pos);
         }
 
-        return world.blocktypes[voxelMap[x, y, z]].isSolid;
+        return world.blocktypes[voxelMap[x,y,z]].isSolid;
+    }
+
+    bool CheckVoxelTransparent(Vector3 pos) {
+        int x = Mathf.FloorToInt(pos.x);
+        int y = Mathf.FloorToInt(pos.y);
+        int z = Mathf.FloorToInt(pos.z);
+
+        if(!IsVoxelInChunk(x, y, z)) {
+            return world.CheckIfVoxelTransparent(pos);
+        }
+
+        return world.blocktypes[voxelMap[x, y, z]].isTransparent;
     }
 
     public byte GetVoxelFromGlobalVector3 (Vector3 pos)
