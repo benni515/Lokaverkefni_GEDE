@@ -12,6 +12,7 @@ public class World : MonoBehaviour {
     public Vector3 spawnPosition;
 
     public Material material;
+    public Material transparentMaterial;
     public BlockType[] blocktypes;
 
     // Pickupable objects
@@ -283,6 +284,7 @@ public class World : MonoBehaviour {
         ChunkCoord thisChunk = new ChunkCoord(pos);
 
 
+
         if (!IsChunkInWorld(thisChunk) || pos.y < 0 || pos.y > Voxel.ChunkHeight)
             return false;
 
@@ -290,6 +292,21 @@ public class World : MonoBehaviour {
             return blocktypes[chunkMap[thisChunk].GetVoxelFromGlobalVector3(pos)].isSolid;
 
         return blocktypes[GetVoxel(pos)].isSolid;
+    }
+
+     public bool CheckIfVoxelTransparent (Vector3 pos)
+    {
+        ChunkCoord thisChunk = new ChunkCoord(pos);
+
+
+
+        if (!IsChunkInWorld(thisChunk) || pos.y < 0 || pos.y > Voxel.ChunkHeight)
+            return false;
+
+        if (chunkMap.ContainsKey(thisChunk) && chunkMap[thisChunk].isVoxelMapPopulated)
+            return blocktypes[chunkMap[thisChunk].GetVoxelFromGlobalVector3(pos)].isTransparent;
+
+        return blocktypes[GetVoxel(pos)].isTransparent;
     }
 
     // Generate main terrain
@@ -571,6 +588,7 @@ public class World : MonoBehaviour {
 public class BlockType {
     public string blockName;
     public bool isSolid;
+    public bool isTransparent;
 
     [Header("Texture values")]
     public int backFaceTexture;
