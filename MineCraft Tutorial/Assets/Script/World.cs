@@ -45,7 +45,7 @@ public class World : MonoBehaviour {
     public int SleepDuration = 10000;
     public int CleanupDistance = 20; // Distance in chunks
 
-    System.Random rnd;
+    private static System.Random rnd;
 
     private void Start() {
         UnityEngine.Random.InitState(seed);
@@ -210,6 +210,8 @@ public class World : MonoBehaviour {
         }
     }
 
+
+
     private void OnDisable()
     {
         ChunkUpdateThread.Abort();
@@ -325,6 +327,22 @@ public class World : MonoBehaviour {
         return blocktypes[GetVoxel(pos)].isTransparent;
     }
 
+    public static float PerlinNoise3D(float x, float y, float z) {
+        y += 1;
+        z += 2;
+        float xy = _perlin3DFixed(x, y);
+        float xz = _perlin3DFixed(x, z);
+        float yz = _perlin3DFixed(y, z);
+        float yx = _perlin3DFixed(y, x);
+        float zx = _perlin3DFixed(z, x);
+        float zy = _perlin3DFixed(z, y);
+        return xy * xz * yz * yx * zx * zy;
+    }
+    static float _perlin3DFixed(float a, float b) {
+        return Mathf.Sin(Mathf.PI * Noise.Get2DPerlin(new Vector2(a, b), 0.0f, 0.9f));
+
+    }
+
     // Generate main terrain
     public byte GetVoxel(Vector3 pos) {
 
@@ -404,7 +422,13 @@ public class World : MonoBehaviour {
             // I don't wanna use this anymore because i want sky-islands
         }
         else {
-            voxelValue = 2;
+            float perlin3dvalue = PerlinNoise3D(pos.x, pos.y, pos.z);
+            if (perlin3dvalue > 0.6f) {
+                voxelValue = 0;
+            }
+            else {
+                voxelValue = 2;
+            }
         }
 
         // SECOND PASS

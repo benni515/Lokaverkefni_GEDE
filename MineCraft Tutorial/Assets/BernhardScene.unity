@@ -153,6 +153,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isVoxelMapPopulated: 0
+  isInitialized: 0
   position: {x: 0, y: 0, z: 0}
 --- !u!23 &125274179
 MeshRenderer:
@@ -431,7 +432,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa408f9f7466a0a4f9b964b7dae8bd01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  seed: 424
+  seed: 2
   biomes:
   - {fileID: 11400000, guid: a20396c5b57a326438f25d29af66fbbe, type: 2}
   - {fileID: 11400000, guid: 91eb217e567c96c43b9a6ccaa0fe953b, type: 2}
